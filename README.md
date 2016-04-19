@@ -77,6 +77,8 @@ aClass.mockData(
 
 ## 数据类
 
+所有的数据类都继承于 `MockEntity`
+
 ### MockNickname
 
 生成 `String` 类型的数据, 生成指定规则的昵称
