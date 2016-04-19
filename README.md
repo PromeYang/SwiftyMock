@@ -16,6 +16,8 @@ SwiftyMock 就是为了解决这样一个痛点而生, 开发者只需要通过 
 
 SwiftyMock 扩展了 `NSObject` 类, 提供一个静态方法 `mockData`, 继承于 `NSObject` 的类可以调用该静态方法
 
+**注意: 使用之前需要实现无参构造函数 **
+
 ```
 class func mockData(mockTypes: [String : MockEntity]?, length: Int, callbackBlock: (instanceList: [AnyObject]) -> Void) -> Void
 ```
@@ -77,7 +79,7 @@ aClass.mockData(
 
 ## 数据类
 
-所有的数据类都继承于 `MockEntity`
+所有的数据类都继承于 `MockEntity`, 数据生成规则都是独立的, 只会有一条规则生效, 规则的优先级按照参数的顺序
 
 ### MockNickname
 
@@ -144,3 +146,6 @@ MockAvatar()
 1.0.0 - 支持 `MockNickname`, `MockText`, `MockNumber`, `MockAvatar` 四种数据类型
 
 ## Issues
+
+1.实现返回数组类型数据
+2.实现实体嵌套类型数据
