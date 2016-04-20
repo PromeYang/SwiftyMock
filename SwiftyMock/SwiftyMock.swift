@@ -51,19 +51,51 @@ class SwiftyMock: NSObject {
     func checkTypes(index: Int, mockTypes: [String : MockEntity]) -> Void {
         for (key, mockEntity) in mockTypes {
             if let mockEntity = mockEntity as? MockNickname {
-                instanceList[index].setValue(fetchNickname(mockEntity), forKey: key)
+                if let (rule, property) = matchArray(key){
+                    let dataList = fetchArray(rule, afunc: { () -> AnyObject in
+                        return self.fetchNickname(mockEntity)
+                    })
+                    instanceList[index].setValue(dataList, forKey: property)
+                }
+                else {
+                    instanceList[index].setValue(fetchNickname(mockEntity), forKey: key)
+                }
             }
             
             if let mockEntity = mockEntity as? MockText {
-                instanceList[index].setValue(fetchText(mockEntity), forKey: key)
+                if let (rule, property) = matchArray(key){
+                    let dataList = fetchArray(rule, afunc: { () -> AnyObject in
+                        return self.fetchText(mockEntity)
+                    })
+                    instanceList[index].setValue(dataList, forKey: property)
+                }
+                else {
+                    instanceList[index].setValue(fetchText(mockEntity), forKey: key)
+                }
             }
             
             if let mockEntity = mockEntity as? MockAvatar {
-                instanceList[index].setValue(fetchAvatar(mockEntity), forKey: key)
+                if let (rule, property) = matchArray(key){
+                    let dataList = fetchArray(rule, afunc: { () -> AnyObject in
+                        return self.fetchAvatar(mockEntity)
+                    })
+                    instanceList[index].setValue(dataList, forKey: property)
+                }
+                else {
+                    instanceList[index].setValue(fetchAvatar(mockEntity), forKey: key)
+                }
             }
             
             if let mockEntity = mockEntity as? MockNumber {
-                instanceList[index].setValue(fetchNumber(mockEntity), forKey: key)
+                if let (rule, property) = matchArray(key){
+                    let dataList = fetchArray(rule, afunc: { () -> AnyObject in
+                        return self.fetchNumber(mockEntity)
+                    })
+                    instanceList[index].setValue(dataList, forKey: property)
+                }
+                else {
+                    instanceList[index].setValue(fetchNumber(mockEntity), forKey: key)
+                }
             }
         }
     }
@@ -98,9 +130,6 @@ class SwiftyMock: NSObject {
         if let nicknameList = nicknameList {
             if let list = nicknameList[String(randomTarget)] {
                 return list[fetchRandom(list.count)]
-            }
-            else {
-                return ""
             }
         }
         return ""
@@ -187,6 +216,49 @@ class SwiftyMock: NSObject {
             return Int(arc4random_uniform(UInt32(range.length))) + range.location
         }
         return 0
+    }
+    
+    func fetchArray(rule: String, afunc: () -> AnyObject) -> NSArray {
+        var dataList = [AnyObject]()
+        if rule.containsString("-") {
+            let subRules = rule.componentsSeparatedByString("-")
+            let random = fetchRandom(range: NSMakeRange(Int(subRules[0])!, Int(subRules[1])! - Int(subRules[0])! + 1 ))
+            for _ in 1...random {
+                dataList.append(afunc())
+            }
+        }
+        else {
+            if let count = Int(rule) {
+                for _ in 1...count {
+                    dataList.append(afunc())
+                }
+            }
+            else {
+                let random = fetchRandom(range: NSMakeRange(0, 5))
+                for _ in 0...random {
+                    dataList.append(afunc())
+                }
+            }
+        }
+        return dataList
+    }
+    
+    func matchArray(input: String) -> (String, String)? {
+        if let regex = regexMaker("\\[.*\\]") {
+            if let res = regex.firstMatchInString(input, options: [], range: NSMakeRange(0, input.characters.count)){
+                let match = (input as NSString).substringWithRange(res.range)
+                let key = (input as NSString).substringWithRange(NSMakeRange(0, res.range.location))
+                let rule = (match as NSString).substringWithRange(NSMakeRange(1, match.characters.count-2))
+                return (rule, key)
+            }
+        }
+        return nil
+        
+    }
+    
+    func regexMaker(pattern: String) -> NSRegularExpression? {
+        let regex = try? NSRegularExpression(pattern: pattern, options: NSRegularExpressionOptions.CaseInsensitive)
+        return regex
     }
 
 }
