@@ -77,6 +77,78 @@ aClass.mockData(
 })
 ```
 
+### 3.嵌套实体类型, 嵌套的实体必须重写mockTypes方法
+
+```
+class subEntity: NSObject {
+    var test : String?
+    // 被嵌套的实体必须重写mockTypes方法并返回数据规则
+    override func mockTypes() -> [String : NSObject]? {
+        return [
+            "test": MockNickname(count: nil, min: nil, max: nil, range: nil),
+        ]
+    }
+}
+// 内嵌实体subEntity
+class aClass : NSObject {
+    var name : [String]?
+    var title : [String]?
+    var avatar : String?
+    var number: [NSNumber]?
+    var sub: subEntity?
+    // 重写mockTypes方法
+    override func mockTypes() -> [String : NSObject]? {
+        return [
+            "name[3-5]": MockNickname(count: nil, min: nil, max: nil, range: nil),
+            "title[3]": MockText(count: 2, min: nil, max: nil, range: nil),
+            "avatar": MockAvatar(),
+            "number[]": MockNumber(count: 2, min: nil, max: nil, range: nil),
+            "sub": subEntity()
+        ]
+    }
+}
+// 调用静态方法 mockData
+aClass.mockData(nil ,length: 10, callbackBlock: { instanceList in
+    for item in instanceList{
+		// TODO
+    }
+})
+```
+
+### 4.左值数组匹配规则
+
+`mockTypes` 中, 数据匹配规则字典的 `key` 对应着类中的属性, 提供了单独匹配数组数据的规则, 用法是通过在原来的`key`值后面 匹配`[ ]` 规则
+
+规则 | 说明
+----- | ---------------
+[ ] | 生成随机的默认1-5条数据
+[ A ] | 生成固定的A条数据, 可以为0
+[ A-B ] | 生成A-B之间随机条数据, A值>=1, B值>=A
+
+```
+class aClass : NSObject {
+    var name : [String]?
+    var title : [String]?
+    var avatar : String?
+    var number: [NSNumber]?
+    // 重写mockTypes方法
+    override func mockTypes() -> [String : NSObject]? {
+        return [
+            "name[3-5]": MockNickname(count: nil, min: nil, max: nil, range: nil),
+            "title[3]": MockText(count: 2, min: nil, max: nil, range: nil),
+            "avatar": MockAvatar(),
+            "number[]": MockNumber(count: 2, min: nil, max: nil, range: nil)
+        ]
+    }
+}
+// 调用静态方法 mockData
+aClass.mockData(nil ,length: 10, callbackBlock: { instanceList in
+    for item in instanceList{
+		// TODO
+    }
+})
+```
+
 ## 数据类
 
 所有的数据类都继承于 `MockEntity`, 数据生成规则都是独立的, 只会有一条规则生效, 规则的优先级按照参数的顺序
@@ -141,11 +213,38 @@ range | NSRange | 生成指定范围内的数值
 MockAvatar()
 ```
 
+### MockBool
+
+返回 `Bool` 类型的数据, 随机生成 `true` 或者 `false`
+
+```
+MockBool()
+```
+
+### MockDate
+
+返回 `NSDate` 类型的数据, 生成当前时刻前一年的随机时间
+
+```
+MockDate()
+```
+
 ## 更新日志
 
-1.0.0 - 支持 `MockNickname`, `MockText`, `MockNumber`, `MockAvatar` 四种数据类型
+1.0.0
+
+* 支持 `MockNickname`, `MockText`, `MockNumber`, `MockAvatar` 四种数据类型
+
+1.0.1
+
+* 支持实体嵌套
+* 支持左值数组数据匹配规则
+* 添加 `MockBool` 数据类型
+* 添加 `MockDate` 数据类型
 
 ## Issues
 
-1.实现返回数组类型数据
-2.实现实体嵌套类型数据
+* 实现返回数组类型数据 - 已实现
+* 实现实体嵌套类型数据 - 已实现
+* 添加 `Bool` 值类型 - 已实现
+* 添加 `NSDate` 值类型 - 已实现
