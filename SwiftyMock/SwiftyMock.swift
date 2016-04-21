@@ -126,6 +126,18 @@ class SwiftyMock: NSObject {
                     instance.setValue(fetchDate(mockEntity), forKey: key)
                 }
             }
+                
+            else if let mockEntity = mockEntity as? MockTag {
+                if let (rule, property) = matchArray(key){
+                    let dataList = fetchArray(rule, afunc: { () -> AnyObject in
+                        return self.fetchTag(mockEntity)
+                    })
+                    instance.setValue(dataList, forKey: property)
+                }
+                else {
+                    instance.setValue(fetchTag(mockEntity), forKey: key)
+                }
+            }
             
             else {
                 if let (rule, property) = matchArray(key){
@@ -261,6 +273,11 @@ class SwiftyMock: NSObject {
         return NSDate(timeIntervalSinceNow: -1 * Double(fetchRandom(range: NSMakeRange(1, 365 * 24 * 60 * 60))))
     }
     
+    func fetchTag(mockEntity: MockTag) -> String {
+        let tagList = ["爱情","喜剧","动画","剧情","科幻","动作","经典","悬疑","青春","犯罪","惊悚","文艺","纪录片","搞笑","励志","恐怖","战争","短片","美国","日本","香港","英国","中国","法国","韩国","台湾","德国","意大利","旅行","摄影","影视","音乐","文学","游戏","动漫","运动","戏曲","桌游","怪癖","健康","美食","宠物","美容","化妆","护肤","服饰","公益","家庭","育儿","汽车","淘宝","二手","团购","数码","品牌","文具","求职","租房","留学","出国","理财","传媒","创业","考试","设计","手工","展览","曲艺","舞蹈","雕塑","纹身","人文","社科","自然","建筑","国学","语言","宗教","哲学","软件","硬件","互联网","恋爱","心情","心理学","星座","塔罗","LES","GAY","吐槽","笑话","直播","八卦","发泄","商业","投资","营销","广告","股票","企业史","策划"]
+        return tagList[fetchRandom(tagList.count)]
+    }
+    
     func fetchRandom(count: Int? = nil , range: NSRange? = nil) -> Int {
         if let count = count {
             return Int(arc4random_uniform(UInt32(count)))
@@ -282,6 +299,9 @@ class SwiftyMock: NSObject {
         }
         else {
             if let count = Int(rule) {
+                if count == 0 {
+                    return dataList
+                }
                 for _ in 1...count {
                     dataList.append(afunc())
                 }
@@ -383,6 +403,10 @@ public class MockBool: MockEntity {
 }
 
 public class MockDate: MockEntity {
+    
+}
+
+public class MockTag: MockEntity {
     
 }
 
