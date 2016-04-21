@@ -44,60 +44,105 @@ class SwiftyMock: NSObject {
         }
     }
     
-    func fillInstanceDatas(index: Int, mockTypes: [String : MockEntity]) -> Void {
-        checkTypes(index, mockTypes: mockTypes)
+    func fillInstanceDatas(index: Int, mockTypes: [String : NSObject]) -> Void {
+        checkTypes(instanceList[index], mockTypes: mockTypes)
     }
     
-    func checkTypes(index: Int, mockTypes: [String : MockEntity]) -> Void {
+    func fillEntityDatas(entity: NSObject, mockTypes: [String : NSObject]) -> NSObject {
+        checkTypes(entity, mockTypes: mockTypes)
+        return entity
+    }
+    
+    func checkTypes(instance: AnyObject, mockTypes: [String : NSObject]) -> Void {
         for (key, mockEntity) in mockTypes {
             if let mockEntity = mockEntity as? MockNickname {
                 if let (rule, property) = matchArray(key){
                     let dataList = fetchArray(rule, afunc: { () -> AnyObject in
                         return self.fetchNickname(mockEntity)
                     })
-                    instanceList[index].setValue(dataList, forKey: property)
+                    instance.setValue(dataList, forKey: property)
                 }
                 else {
-                    instanceList[index].setValue(fetchNickname(mockEntity), forKey: key)
+                    instance.setValue(fetchNickname(mockEntity), forKey: key)
                 }
             }
             
-            if let mockEntity = mockEntity as? MockText {
+            else if let mockEntity = mockEntity as? MockText {
                 if let (rule, property) = matchArray(key){
                     let dataList = fetchArray(rule, afunc: { () -> AnyObject in
                         return self.fetchText(mockEntity)
                     })
-                    instanceList[index].setValue(dataList, forKey: property)
+                    instance.setValue(dataList, forKey: property)
                 }
                 else {
-                    instanceList[index].setValue(fetchText(mockEntity), forKey: key)
+                    instance.setValue(fetchText(mockEntity), forKey: key)
                 }
             }
             
-            if let mockEntity = mockEntity as? MockAvatar {
+            else if let mockEntity = mockEntity as? MockAvatar {
                 if let (rule, property) = matchArray(key){
                     let dataList = fetchArray(rule, afunc: { () -> AnyObject in
                         return self.fetchAvatar(mockEntity)
                     })
-                    instanceList[index].setValue(dataList, forKey: property)
+                    instance.setValue(dataList, forKey: property)
                 }
                 else {
-                    instanceList[index].setValue(fetchAvatar(mockEntity), forKey: key)
+                    instance.setValue(fetchAvatar(mockEntity), forKey: key)
                 }
             }
             
-            if let mockEntity = mockEntity as? MockNumber {
+            else if let mockEntity = mockEntity as? MockNumber {
                 if let (rule, property) = matchArray(key){
                     let dataList = fetchArray(rule, afunc: { () -> AnyObject in
                         return self.fetchNumber(mockEntity)
                     })
-                    instanceList[index].setValue(dataList, forKey: property)
+                    instance.setValue(dataList, forKey: property)
                 }
                 else {
-                    instanceList[index].setValue(fetchNumber(mockEntity), forKey: key)
+                    instance.setValue(fetchNumber(mockEntity), forKey: key)
+                }
+            }
+                
+            else if let mockEntity = mockEntity as? MockBool {
+                if let (rule, property) = matchArray(key){
+                    let dataList = fetchArray(rule, afunc: { () -> AnyObject in
+                        return self.fetchBool(mockEntity)
+                    })
+                    instance.setValue(dataList, forKey: property)
+                }
+                else {
+                    instance.setValue(fetchBool(mockEntity), forKey: key)
+                }
+            }
+                
+            else if let mockEntity = mockEntity as? MockDate {
+                if let (rule, property) = matchArray(key){
+                    let dataList = fetchArray(rule, afunc: { () -> AnyObject in
+                        return self.fetchDate(mockEntity)
+                    })
+                    instance.setValue(dataList, forKey: property)
+                }
+                else {
+                    instance.setValue(fetchDate(mockEntity), forKey: key)
+                }
+            }
+            
+            else {
+                if let (rule, property) = matchArray(key){
+                    let dataList = fetchArray(rule, afunc: { () -> AnyObject in
+                        return self.fetchEntity(mockEntity)
+                    })
+                    instance.setValue(dataList, forKey: property)
+                }
+                else {
+                    instance.setValue(fetchEntity(mockEntity), forKey: key)
                 }
             }
         }
+    }
+    
+    func fetchEntity(mockEntity: NSObject) -> NSObject {
+        return mockEntity.mockEntity()
     }
     
     func fetchNickname(mockEntity: MockNickname) -> String {
@@ -206,6 +251,14 @@ class SwiftyMock: NSObject {
             return ""
         }
         return avatarList[random]
+    }
+    
+    func fetchBool(mockEntity: MockBool) -> Bool {
+        return fetchRandom(2) == 0 ? false : true
+    }
+    
+    func fetchDate(mockEntity: MockDate) -> NSDate {
+        return NSDate(timeIntervalSinceNow: -1 * Double(fetchRandom(range: NSMakeRange(1, 365 * 24 * 60 * 60))))
     }
     
     func fetchRandom(count: Int? = nil , range: NSRange? = nil) -> Int {
@@ -325,16 +378,24 @@ public class MockAvatar: MockEntity {
     
 }
 
+public class MockBool: MockEntity {
+    
+}
+
+public class MockDate: MockEntity {
+    
+}
+
 extension NSObject{
     
-    class func mockData(mockTypes: [String : MockEntity]?, length: Int, callbackBlock: (instanceList: [AnyObject]) -> Void) -> Void {
+    class func mockData(mockTypes: [String : NSObject]?, length: Int, callbackBlock: (instanceList: [AnyObject]) -> Void) -> Void {
         
         let mock = SwiftyMock.sharedInstance;
         
         mock.instanceList = []
         
         for index in 0..<length {
-            let _mockTypes : [String : MockEntity]
+            let _mockTypes : [String : NSObject]
             let instance = self.init()
             mock.instanceList.append(instance)
             if let mockTypes = mockTypes {
@@ -355,7 +416,19 @@ extension NSObject{
         callbackBlock(instanceList: mock.instanceList)
     }
     
-    func mockTypes() -> [String : MockEntity]? {
+    func mockEntity() -> NSObject {
+        let mock = SwiftyMock.sharedInstance;
+        
+        if let mockTypes = self.mockTypes() {
+            mock.fillEntityDatas(self, mockTypes: mockTypes)
+        }
+        else {
+            assert(false, "内嵌的entity必须重写mockTypes方法")
+        }
+        return self
+    }
+    
+    func mockTypes() -> [String : NSObject]? {
         return nil
     }
     
