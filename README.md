@@ -229,6 +229,14 @@ MockBool()
 MockDate()
 ```
 
+### MockTag
+
+返回 `String` 类型的数据, 生成随机的标签数据
+
+```
+MockTag()
+```
+
 ## 更新日志
 
 1.0.0
@@ -241,6 +249,10 @@ MockDate()
 * 支持左值数组数据匹配规则
 * 添加 `MockBool` 数据类型
 * 添加 `MockDate` 数据类型
+
+1.0.2
+
+* 添加 `MockTag` 数据类型
 
 ## Issues
 
